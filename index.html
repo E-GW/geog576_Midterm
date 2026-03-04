@@ -2,47 +2,68 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <!--
+      Viewport meta makes the layout responsive on phones/tablets.
+      initial-scale=1 ensures the page starts at normal zoom.
+      maximum-scale=1 and user-scalable=no prevent pinch zoom.
+    -->
     <meta
       name="viewport"
       content="initial-scale=1, maximum-scale=1, user-scalable=no"
     />
 
+    <!-- Browser tab title -->
     <title>ParkArt — Midterm</title>
 
-    <!-- Bootstrap 5 -->
+    <!-- Bootstrap 5 CSS for grid, utilities, offcanvas, buttons, typography -->
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
 
-    <!-- ArcGIS JS API (YOUR VERSION/LINK) -->
+    <!-- ArcGIS theme CSS for map view, widgets (search, locate, home, popup) -->
     <link
       rel="stylesheet"
       href="https://js.arcgis.com/4.33/esri/themes/light/main.css"
     />
 
+
     <style>
+      /*
+        CSS custom properties used across the layout for consistent color and borders.
+      */
       :root {
         --brand-border: #111;
         --panel-bg: #fff;
         --muted: #6b7280;
       }
 
+      /* Light gray background behind the app panels */
       body {
-        background: #f3f4f6;
+        background: #f4f6f3;
       }
 
+      /*
+        Outer wrapper that keeps the app full height and allows header + content stacking.
+      */
       .app-shell {
         min-height: 100vh;
         display: flex;
         flex-direction: column;
       }
 
+      /*
+        Top header bar styling with a strong border line.
+      */
       .brand-bar {
         background: #fff;
         border-bottom: 2px solid var(--brand-border);
       }
 
+      /*
+        Title styling. Note: there are two .brand-title blocks in this file.
+        This second one overrides the first because it appears later.
+      */
       .brand-title {
         font-weight: 800;
         letter-spacing: 0.3px;
@@ -50,6 +71,10 @@
         line-height: 1.1;
       }
 
+      /*
+        Updated title styling with responsive size.
+        clamp(min, preferred, max) scales smoothly across screen sizes.
+      */
       .brand-title {
         font-weight: 900;
         letter-spacing: 1px;
@@ -58,6 +83,9 @@
         font-size: clamp(2.5rem, 4vw, 4rem);
       }
 
+      /*
+        Art image frame used in the header for branding visuals.
+      */
       .art-pic {
         width: 180px;
         height: 120px;
@@ -70,12 +98,36 @@
         background: #fff;
       }
 
+      /* Image fills the frame while preserving aspect ratio */
       .art-pic img {
         width: 100%;
         height: 100%;
         object-fit: cover;
       }
 
+      /*
+        Mobile adjustments for the header images and text sizing on small phones.
+      */
+      @media (max-width: 575.98px) {
+        .art-pic {
+          width: 54px;
+          height: 40px;
+        }
+
+        .brand-title {
+          font-size: clamp(2rem, 7vw, 2.6rem);
+        }
+
+        .brand-subtitle {
+          font-size: 0.95rem;
+        }
+      }
+
+      /*
+        Main content region.
+        Desktop: flex row of three panels (Info | Map | Known locations).
+        Mobile: stacks into a column via media query further down.
+      */
       .main-area {
         flex: 1;
         display: flex;
@@ -83,6 +135,7 @@
         padding: 14px;
       }
 
+      /* Shared panel styling for Info, Map, Known locations */
       .panel {
         background: var(--panel-bg);
         border: 2px solid var(--brand-border);
@@ -90,6 +143,7 @@
         overflow: hidden;
       }
 
+      /* Panel header strip */
       .panel-header {
         padding: 10px 12px;
         border-bottom: 2px solid var(--brand-border);
@@ -97,17 +151,24 @@
         font-weight: 800;
       }
 
+      /* Panel padding container */
       .panel-body {
         padding: 12px;
       }
 
-      /* Map container */
+      /*
+        Map container. The map view is rendered into this div by ArcGIS MapView.
+        This block is duplicated later with additional styles; later block wins.
+      */
       #viewDiv {
         width: 100%;
         height: 72vh;
         min-height: 520px;
       }
 
+      /*
+        Map panel is the central flexible panel.
+      */
       .map-panel {
         flex: 1 1 auto;
         min-width: 320px;
@@ -115,6 +176,9 @@
         flex-direction: column;
       }
 
+      /*
+        Side panels (Info and Known locations) have fixed width on desktop.
+      */
       .side-panel {
         width: 320px;
         flex: 0 0 320px;
@@ -122,24 +186,29 @@
         flex-direction: column;
       }
 
+      /* Scrollable list area */
       .known-list {
         max-height: calc(72vh - 52px);
         overflow: auto;
       }
 
+      /* List item cursor indicates clickability */
       .known-item {
         cursor: pointer;
       }
 
+      /* Hover style for list items */
       .known-item:hover {
         background: #f8fafc;
       }
 
+      /* Muted helper text styling */
       .hint {
         color: var(--muted);
         font-size: 0.92rem;
       }
 
+      /* Small pill style used for counts and status indicator */
       .pill {
         display: inline-block;
         font-size: 0.75rem;
@@ -150,7 +219,10 @@
         color: #111;
       }
 
-      /* Bottom-anchored Add Sculpture button (desktop + mobile) */
+      /*
+        Add Sculpture button is positioned over the map.
+        It opens the Survey123 form in a new tab.
+      */
       .addSculptureBtn {
         position: absolute;
         z-index: 30;
@@ -174,15 +246,23 @@
         color: white;
       }
 
-      /* Give the map some breathing room so the button doesn't cover attribution/UI */
+      /*
+        Second #viewDiv definition adds bottom padding so map attribution/widgets
+        are less likely to be covered by the overlayed Add Sculpture button.
+        Since it's later, it overrides the earlier #viewDiv block.
+      */
       #viewDiv {
         width: 100%;
         height: 72vh;
         min-height: 520px;
-        padding-bottom: 52px; /* space for button overlay */
+        padding-bottom: 52px;
         box-sizing: border-box;
       }
 
+      /*
+        Mobile layout adjustments:
+        The map is shorter and padding is increased slightly for the button.
+      */
       @media (max-width: 991.98px) {
         #viewDiv {
           height: 56vh;
@@ -194,113 +274,143 @@
   </head>
 
   <body>
+    <!-- App wrapper for consistent full-height layout -->
     <div class="app-shell">
-      <!-- Header -->
+      <!-- Header area with images and centered title -->
       <header class="brand-bar py-2">
         <div class="container-fluid">
+          <!-- Flex container positions left images, title, and right images -->
           <div class="d-flex align-items-center justify-content-between">
+            <!-- Left Image shown on all sizes -->
+            <div class="art-pic">
+              <img src="img/BlueSculpture.jpg" alt="Blue Sculpture" />
+            </div>
+            <!-- The "|" characters in your markup render as literal text on the page -->
+            |
 
-            <!-- Left Image -->
+            <!-- Additional left image shown only on md+ screens -->
             <div class="art-pic d-none d-md-block">
-              <img src="img/BlueSculpture.jpg" alt="Blue Sculpture">
-            </div>|
-            <div class="art-pic d-none d-md-block">
-              <img src="img/WoodenMan_OnBench.jpg" alt="Wooden Man on a Bench">
+              <img
+                src="img/WoodenMan_OnBench.jpg"
+                alt="Wooden Man on a Bench"
+              />
             </div>
 
-            <!-- Center Title Block -->
-            <div class="text-center flex-grow-1">
+            <!-- Center title block expands to fill remaining space and stays centered -->
+            <div class="text-center flex-grow-1 px-2">
               <h1 class="brand-title">ParkArt</h1>
-              <p class="brand-subtitle m-0">
-                Public Art Installations Tracker
-              </p>
+              <p class="brand-subtitle m-0">Public Art Installations Tracker</p>
             </div>
 
-            <!-- Right Image -->
+            <!-- Additional right image shown only on md+ screens -->
             <div class="art-pic d-none d-md-block">
-              <img src="img/RoundGardenSculpture.jpg" alt="Round Garden Sculpture">
-            </div>|
-            <div class="art-pic d-none d-md-block">
-              <img src="img/gorilla.jpg" alt="Gorilla Sculpture">
+              <img
+                src="img/RoundGardenSculpture.jpg"
+                alt="Round Garden Sculpture"
+              />
             </div>
+            |
 
+            <!-- Right Image shown on all sizes -->
+            <div class="art-pic">
+              <img src="img/gorilla.jpg" alt="Gorilla Sculpture" />
+            </div>
           </div>
         </div>
       </header>
 
-      <!-- Main -->
+      <!-- Main content area: Info panel, Map panel, Known locations panel -->
       <main class="main-area">
-        <!-- LEFT: Info (desktop) -->
+        <!-- Info panel shown on desktop (lg+) only -->
         <section class="panel side-panel d-none d-lg-flex">
           <div class="panel-header">Info</div>
           <div class="panel-body">
             <p class="mb-2">
-              This app helps you record and discover <strong>public structural art</strong>—
-              sculptures, statues, and installations—especially pieces tucked away in parks
-              or corners of buildings.
+              This app helps you record and discover
+              <strong>public structural art</strong>— sculptures, statues, and
+              installations—especially pieces tucked away in parks or corners of
+              buildings.
             </p>
             <ul class="mb-2">
-              <li>Use <span class="pill">Find my location</span> to zoom to you.</li>
-              <li>Use <span class="pill">Add Sculpture</span> to open the Survey123 form.</li>
+              <li>Use the circular <span class="pill">Find my location</span> button to zoom to you.</li>
+              <li>
+                Use <span class="pill">Add Sculpture</span> to submit a piece of art vie a Survey123
+                form.
+              </li>
               <li>Points in the map show details when selected.</li>
             </ul>
             <p class="hint mb-0">
-              The list on the right shows known art locations inside the current map view.
+              The list on the right shows known artwork locations inside the current
+              map view.
             </p>
           </div>
         </section>
 
-        <!-- CENTER: Map -->
+        <!-- Map panel shown on all sizes -->
         <section class="panel map-panel">
+          <!-- Panel header: title plus mobile-only buttons -->
           <div class="panel-header d-flex align-items-center justify-content-between">
             <span>Map</span>
 
-            <div class="btn-group d-lg-none" role="group" aria-label="Map panel controls">
-            <button
-              class="btn btn-sm btn-outline-dark"
-              data-bs-toggle="collapse"
-              data-bs-target="#mobileInfo"
-              aria-controls="mobileInfo"
+            <!-- Mobile-only controls: toggles Info (collapse) and Known Locations (offcanvas) -->
+            <div
+              class="btn-group d-lg-none"
+              role="group"
+              aria-label="Map panel controls"
             >
-              Info
-            </button>
+              <button
+                class="btn btn-sm btn-outline-dark"
+                data-bs-toggle="collapse"
+                data-bs-target="#mobileInfo"
+                aria-controls="mobileInfo"
+              >
+                Info
+              </button>
 
-            <button
-              class="btn btn-sm btn-outline-dark"
-              data-bs-toggle="offcanvas"
-              data-bs-target="#offcanvasKnown"
-              aria-controls="offcanvasKnown"
-            >
-              Known Locations
-            </button>
-          </div>
+              <button
+                class="btn btn-sm btn-outline-dark"
+                data-bs-toggle="offcanvas"
+                data-bs-target="#offcanvasKnown"
+                aria-controls="offcanvasKnown"
+              >
+                Known Locations
+              </button>
+            </div>
           </div>
 
-          <!-- Mobile collapsible info -->
+          <!-- Mobile-only collapsible Info section -->
           <div class="collapse d-lg-none" id="mobileInfo">
-            <div class="panel-body" style="border-bottom: 2px solid var(--brand-border)">
+            <div
+              class="panel-body"
+              style="border-bottom: 2px solid var(--brand-border)"
+            >
               <p class="mb-2">
-                Record and discover <strong>public structural art</strong> near you.
-                Use <strong>Add Sculpture</strong> to submit via Survey123.
+                Record and discover <strong>public structural art</strong> near
+                you. Press <strong>Add Sculpture</strong> to submit a piece of art via Survey123.<br>
+                Points in the map show details when pressed.
               </p>
               <p class="hint mb-0">
-                The known-locations list shows points currently in your map view.
+                Press <strong>Known Locations</strong> to see all the
+                known/recorded points currently in your map view.
               </p>
             </div>
           </div>
 
+          <!-- Map container wrapper needs position: relative so the Add Sculpture button can be positioned over it -->
           <div style="position: relative">
-            <!-- Your exact Survey123 Add Record link (kept) -->
+            <!-- Link to Survey123 form to add a new sculpture record -->
             <a
               href="https://survey123.arcgis.com/share/ed4e8c66c6a342bcbed6dc9ea9fed8da"
               target="_blank"
               class="addSculptureBtn"
-              >Add Sculpture
-            </a>
+              >Add Sculpture</a
+            >
 
+            <!-- ArcGIS MapView renders here -->
             <div id="viewDiv"></div>
           </div>
 
+          <!-- Status strip under the map showing instructions and list loading state -->
           <div class="panel-body d-flex align-items-center justify-content-between gap-2">
             <div class="hint">
               Pan/zoom the map — the known locations list updates automatically.
@@ -309,23 +419,26 @@
           </div>
         </section>
 
-        <!-- RIGHT: Known locations (desktop) -->
+        <!-- Known locations panel shown on desktop (lg+) only -->
         <section class="panel side-panel d-none d-lg-flex">
           <div class="panel-header d-flex align-items-center justify-content-between">
             <span>Known locations in map view:</span>
             <span id="countBadge" class="pill">0</span>
           </div>
           <div class="panel-body p-0">
+            <!-- Desktop list is populated by JavaScript -->
             <div id="knownList" class="list-group list-group-flush known-list"></div>
+            <!-- Empty state shown when no features are in view -->
             <div id="knownEmpty" class="p-3 text-center text-muted d-none">
               No known art locations in the current map view.
             </div>
           </div>
         </section>
       </main>
+      <p class="brand-subtitle m-0">- Site created by Elijah Gardner Woods, 2026.</p >
     </div>
 
-    <!-- Mobile Offcanvas list -->
+    <!-- Known locations offcanvas for mobile -->
     <div
       class="offcanvas offcanvas-end"
       tabindex="-1"
@@ -334,7 +447,7 @@
     >
       <div class="offcanvas-header">
         <h5 class="offcanvas-title" id="offcanvasKnownLabel">
-          Known locations in view
+          Known locations in map view
         </h5>
         <button
           type="button"
@@ -343,6 +456,8 @@
           aria-label="Close"
         ></button>
       </div>
+
+      <!-- Mobile list and empty state are populated/toggled by JavaScript -->
       <div class="offcanvas-body p-0">
         <div class="px-3 pb-2">
           <span id="countBadgeMobile" class="pill">0</span>
@@ -354,226 +469,309 @@
       </div>
     </div>
 
-    <!-- Bootstrap JS -->
+    <!-- Bootstrap JS enables collapse, offcanvas, buttons, and other interactive components -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
+
+    
+    <!--
+      ArcGIS JS API is loaded as ES modules (type="module").
+      This avoids AMD loader conflicts and keeps variables scoped to this module.
+    -->
     <script type="module">
-        import esriConfig from "https://js.arcgis.com/4.33/@arcgis/core/config.js";
-        import Map from "https://js.arcgis.com/4.33/@arcgis/core/Map.js";
-        import MapView from "https://js.arcgis.com/4.33/@arcgis/core/views/MapView.js";
-        import Locate from "https://js.arcgis.com/4.33/@arcgis/core/widgets/Locate.js";
-        import Search from "https://js.arcgis.com/4.33/@arcgis/core/widgets/Search.js";
-        import Home from "https://js.arcgis.com/4.33/@arcgis/core/widgets/Home.js";
-        import FeatureLayer from "https://js.arcgis.com/4.33/@arcgis/core/layers/FeatureLayer.js";
+      import esriConfig from "https://js.arcgis.com/4.33/@arcgis/core/config.js";
+      import Map from "https://js.arcgis.com/4.33/@arcgis/core/Map.js";
+      import MapView from "https://js.arcgis.com/4.33/@arcgis/core/views/MapView.js";
+      import Locate from "https://js.arcgis.com/4.33/@arcgis/core/widgets/Locate.js";
+      import Search from "https://js.arcgis.com/4.33/@arcgis/core/widgets/Search.js";
+      import Home from "https://js.arcgis.com/4.33/@arcgis/core/widgets/Home.js";
+      import FeatureLayer from "https://js.arcgis.com/4.33/@arcgis/core/layers/FeatureLayer.js";
 
-        // ✅ API key placeholder
-        esriConfig.apiKey = "AAPTxy8BH1VEsoebNVZXo8HurBJmF1dHA4CHzUZ4f7XXY9MumVDFdZwWOV0pYRQMOAc7ZaqvOZxcqTmdHYg4uq0LAzk5EA8UDp0afz4N38c05_g1e4nZkAsxtdl9eWtAkFEOzYhK5sSy0SSdy9kSZ2kK797kJHpMrR-d0v7pjLT7kO2zAR9lbfIj2YY8PY1C_ARAz5SGHU8AQF_B146E-iEsWLrzafOtmDmUKhSkdT9BEWgLhqy6WzEsPYTj7B_66V6MAT1_eplYvQF3";
+      /*
+        ArcGIS API key used for basemaps, geocoding, and other services.
+        In production, keep this key restricted by referrer and scope.
+      */
+      esriConfig.apiKey =
+        "AAPTxy8BH1VEsoebNVZXo8HurBJmF1dHA4CHzUZ4f7XXY9MumVDFdZwWOV0pYRQMOAc7ZaqvOZxcqTmdHYg4uq0LAzk5EA8UDp0afz4N38c05_g1e4nZkAsxtdl9eWtAkFEOzYhK5sSy0SSdy9kSZ2kK797kJHpMrR-d0v7pjLT7kO2zAR9lbfIj2YY8PY1C_ARAz5SGHU8AQF_B146E-iEsWLrzafOtmDmUKhSkdT9BEWgLhqy6WzEsPYTj7B_66V6MAT1_eplYvQF3";
 
-        // ✅ Create map
-        const map = new Map({
-            basemap: "satellite",
-        });
+      /*
+        Create the map and set the basemap.
+        The map is a model; it does not render until a view is created.
+      */
+      const map = new Map({
+        basemap: "satellite",
+      });
 
-        // ✅ Create view
-        const view = new MapView({
-            container: "viewDiv",
-            map,
-            center: [-98.5795, 39.8283],
-            zoom: 4,
-        });
+      /*
+        Create a 2D view to render the map in the #viewDiv element.
+        center/zoom define the default "home" view extent.
+      */
+      const view = new MapView({
+        container: "viewDiv",
+        map,
+        center: [-98.5795, 39.8283],
+        zoom: 4,
+      });
 
-        // expose for debugging in DevTools
-        window.view = view;
+      /*
+        Expose the view for debugging from the browser console.
+        This lets you run commands like view.popup and inspect attributes.
+      */
+      window.view = view;
 
-        const homeBtn = new Home({
-            view: view
-        });
-        view.ui.add(homeBtn, "top-left");
+      /*
+        Home widget returns the view to its initial center/zoom and rotation.
+      */
+      const homeBtn = new Home({ view });
+      view.ui.add(homeBtn, "top-left");
 
-        // ✅ Widgets
-        const locateBtn = new Locate({ view });
-        view.ui.add(locateBtn, { position: "top-left" });
+      /*
+        Locate widget zooms to the user's device location.
+        Added to top-left so it stacks with Home.
+      */
+      const locateBtn = new Locate({ view });
+      view.ui.add(locateBtn, { position: "top-left" });
 
-        const search = new Search({ view });
-        view.ui.add(search, "top-right");
+      /*
+        Search widget provides geocoding (address/place search).
+      */
+      const search = new Search({ view });
+      view.ui.add(search, "top-right");
 
-        // ✅ FeatureLayer (use /0)
-        const layer = new FeatureLayer({
-            url: "https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/survey123_ed4e8c66c6a342bcbed6dc9ea9fed8da_results/FeatureServer/0",
-            outFields: ["*"],
-            popupEnabled: true,
-        });
+      /*
+        FeatureLayer points to the Survey123 results layer.
+        outFields ["*"] ensures popup and list logic can read all attributes.
+      */
+      const layer = new FeatureLayer({
+        url:
+          "https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/survey123_ed4e8c66c6a342bcbed6dc9ea9fed8da_results/FeatureServer/0",
+        outFields: ["*"],
+        popupEnabled: true,
+      });
 
-        window.artLayer = layer;
+      /*
+        Expose the layer for debugging (inspect fields, test queries).
+      */
+      window.artLayer = layer;
 
-        layer.popupEnabled = true;
+      /*
+        Popup template controls what shows when a feature is clicked.
+        The title and attribute placeholders must match the layer field names.
+        Your title field appears truncated in two places:
+        - popup title uses {What_is_the_name_of_the_piece_o}
+        - pickTitle uses "what_is_the_name_of_the_piece_o"
+        If the actual field name differs (case or truncation), the popup title/list can be blank.
+      */
+      layer.popupTemplate = {
+        title: "{What_is_the_name_of_the_piece_o}",
+        content: `
+          <div>
+            <div><strong>Artist:</strong> {What_is_the_artists_name}</div>
+            <div><strong>Type:</strong> {Is_it_a_sculpture_statue_art_in}</div>
+            <div><strong>Year completed:</strong> {What_year_was_the_piece_complet}</div>
+            <div><strong>Location:</strong> {Where_is_this_piece_of_art_City}</div>
 
-        layer.popupTemplate = {
-          title: "{What_is_the_name_of_the_piece_o}",
-          content: `
-            <div>
-              <div><strong>Artist:</strong> {What_is_the_artists_name}</div>
-              <div><strong>Type:</strong> {Is_it_a_sculpture_statue_art_in}</div>
-              <div><strong>Year completed:</strong> {What_year_was_the_piece_complet}</div>
-              <div><strong>Location:</strong> {Where_is_this_piece_of_art_City}</div>
-
-              <div class="mt-2">
-                <strong>Description:</strong><br/>
-                {Please_provide_a_short_descript}
-              </div>
-
-              <hr class="my-2"/>
+            <div class="mt-2">
+              <strong>Description:</strong><br/>
+              {Please_provide_a_short_descript}
             </div>
-          `
-        };
 
-        map.add(layer);
+            <hr class="my-2"/>
+          </div>
+        `,
+      };
 
-        // --- Known locations list (in current map view) ---
-        const knownList = document.getElementById("knownList");
-        const knownEmpty = document.getElementById("knownEmpty");
-        const countBadge = document.getElementById("countBadge");
+      /*
+        Add the feature layer to the map so it renders in the view.
+      */
+      map.add(layer);
 
-        const knownListMobile = document.getElementById("knownListMobile");
-        const knownEmptyMobile = document.getElementById("knownEmptyMobile");
-        const countBadgeMobile = document.getElementById("countBadgeMobile");
+      /*
+        Cache DOM elements used for the desktop and mobile known locations lists.
+        These containers get populated whenever the map extent changes.
+      */
+      const knownList = document.getElementById("knownList");
+      const knownEmpty = document.getElementById("knownEmpty");
+      const countBadge = document.getElementById("countBadge");
 
-        const statusPill = document.getElementById("statusPill");
+      const knownListMobile = document.getElementById("knownListMobile");
+      const knownEmptyMobile = document.getElementById("knownEmptyMobile");
+      const countBadgeMobile = document.getElementById("countBadgeMobile");
 
-        const escapeHtml = (s) =>
-            String(s ?? "")
-            .replaceAll("&", "&amp;")
-            .replaceAll("<", "&lt;")
-            .replaceAll(">", "&gt;")
-            .replaceAll('"', "&quot;")
-            .replaceAll("'", "&#039;");
+      /*
+        Status pill is used to show "Loading…" while querying features in view.
+      */
+      const statusPill = document.getElementById("statusPill");
 
-        function setStatus(text) {
-            statusPill.textContent = text;
+      /*
+        Escapes text before injecting into HTML to avoid breaking markup and to reduce XSS risk.
+      */
+      const escapeHtml = (s) =>
+        String(s ?? "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+
+      /*
+        Update the status pill text (Ready, Loading…, List unavailable).
+      */
+      function setStatus(text) {
+        statusPill.textContent = text;
+      }
+
+      /*
+        pickTitle chooses the attribute field used as the list title.
+        It returns a default label if the attribute is missing or empty.
+        The field name used here is lowercase; ArcGIS field names are typically case-sensitive.
+        If your layer uses a different case, the list title may show "Unnamed sculpture".
+      */
+      function pickTitle(attrs) {
+        const SCULPTURE_NAME_FIELD = "what_is_the_name_of_the_piece_o";
+        const value = attrs?.[SCULPTURE_NAME_FIELD];
+
+        return value && String(value).trim()
+          ? String(value).trim()
+          : "Unnamed sculpture";
+      }
+
+      /*
+        Render the known locations list for both desktop and mobile.
+        Each list item zooms to the feature and opens the feature's popup.
+      */
+      function renderKnownList(features) {
+        const total = features.length;
+
+        countBadge.textContent = total;
+        countBadgeMobile.textContent = total;
+
+        knownList.innerHTML = "";
+        knownListMobile.innerHTML = "";
+
+        if (total === 0) {
+          knownEmpty.classList.remove("d-none");
+          knownEmptyMobile.classList.remove("d-none");
+          return;
         }
 
-        function pickTitle(attrs) {
-            const SCULPTURE_NAME_FIELD = "what_is_the_name_of_the_piece_o";
+        knownEmpty.classList.add("d-none");
+        knownEmptyMobile.classList.add("d-none");
 
-            const value = attrs?.[SCULPTURE_NAME_FIELD];
+        features.forEach((f) => {
+          const attrs = f.attributes || {};
+          const title = escapeHtml(pickTitle(attrs));
 
-            return (value && String(value).trim())
-                ? String(value).trim()
-                : "Unnamed sculpture";
-            }
+          const oid = attrs.OBJECTID ?? "";
+          const subtitle = oid ? `OBJECTID: ${escapeHtml(oid)}` : "";
 
-        function renderKnownList(features) {
-            const total = features.length;
-            countBadge.textContent = total;
-            countBadgeMobile.textContent = total;
+          const html = `
+            <button type="button" class="list-group-item list-group-item-action known-item">
+              <div class="fw-semibold">${title}</div>
+              <div class="small text-muted">${subtitle}</div>
+            </button>
+          `;
 
-            knownList.innerHTML = "";
-            knownListMobile.innerHTML = "";
+          const w = document.createElement("div");
+          w.innerHTML = html.trim();
+          const btn = w.firstElementChild;
 
-            if (total === 0) {
-            knownEmpty.classList.remove("d-none");
-            knownEmptyMobile.classList.remove("d-none");
+          btn.addEventListener("click", async () => {
+            await view.goTo({ target: f.geometry, zoom: 18 });
+            view.openPopup({
+              features: [f],
+              location: f.geometry,
+            });
+          });
+
+          knownList.appendChild(btn);
+
+          const wM = document.createElement("div");
+          wM.innerHTML = html.trim();
+          const btnM = wM.firstElementChild;
+
+          btnM.addEventListener("click", async () => {
+            const off = bootstrap.Offcanvas.getInstance(
+              document.getElementById("offcanvasKnown")
+            );
+            if (off) off.hide();
+
+            await view.goTo({ target: f.geometry, zoom: 18 });
+            view.openPopup({
+              features: [f],
+              location: f.geometry,
+            });
+          });
+
+          knownListMobile.appendChild(btnM);
+        });
+      }
+
+      /*
+        Token used to ensure only the latest query result updates the list.
+        This prevents aborted/overlapping requests from causing errors or flicker.
+      */
+      let lastQueryToken = 0;
+
+      /*
+        Query the layer for features intersecting the current view extent.
+        This is called when the user pans/zooms and when the view first loads.
+      */
+      async function refreshKnownList() {
+        if (!view.extent) return;
+
+        const token = ++lastQueryToken;
+        setStatus("Loading…");
+
+        const q = layer.createQuery();
+        q.geometry = view.extent;
+        q.spatialRelationship = "intersects";
+        q.returnGeometry = true;
+        q.outFields = ["*"];
+        q.num = 200;
+
+        try {
+          const res = await layer.queryFeatures(q);
+
+          if (token !== lastQueryToken) return;
+
+          renderKnownList(res.features || []);
+          setStatus("Ready");
+        } catch (e) {
+          if (e?.name === "AbortError" || /aborted/i.test(e?.message || "")) {
             return;
-            }
-            knownEmpty.classList.add("d-none");
-            knownEmptyMobile.classList.add("d-none");
+          }
 
-            features.forEach((f) => {
-            const attrs = f.attributes || {};
-            const title = escapeHtml(pickTitle(attrs));
-            const oid = attrs.OBJECTID ?? "";
-            const subtitle = oid ? `OBJECTID: ${escapeHtml(oid)}` : "";
-
-            const html = `
-                <button type="button" class="list-group-item list-group-item-action known-item">
-                <div class="fw-semibold">${title}</div>
-                <div class="small text-muted">${subtitle}</div>
-                </button>
-            `;
-
-            // Desktop
-            const w = document.createElement("div");
-            w.innerHTML = html.trim();
-            const btn = w.firstElementChild;
-            btn.addEventListener("click", async () => {
-                await view.goTo({ target: f.geometry, zoom: 18 });
-                view.openPopup({
-                    features: [f],
-                    location: f.geometry
-                });
-            });
-            knownList.appendChild(btn);
-
-            // Mobile
-            const wM = document.createElement("div");
-            wM.innerHTML = html.trim();
-            const btnM = wM.firstElementChild;
-            btnM.addEventListener("click", async () => {
-                const off = bootstrap.Offcanvas.getInstance(
-                document.getElementById("offcanvasKnown")
-                );
-                if (off) off.hide();
-
-                await view.goTo({ target: f.geometry, zoom: 18 });
-                view.openPopup({
-                    features: [f],
-                    location: f.geometry
-                });
-            });
-            knownListMobile.appendChild(btnM);
-            });
+          console.warn("Known list query failed:", e);
+          renderKnownList([]);
+          setStatus("List unavailable");
         }
+      }
 
-        let lastQueryToken = 0;
+      /*
+        Debounce extent changes so the app does not query on every animation frame.
+        A small delay (350ms) waits for the user to stop moving the map.
+      */
+      let t = null;
+      view.watch("extent", () => {
+        if (t) clearTimeout(t);
+        t = setTimeout(refreshKnownList, 350);
+      });
 
-        async function refreshKnownList() {
-            if (!view.extent) return;
+      /*
+        When the view is ready, load the initial list.
+      */
+      view.when(() => {
+        console.log("MapView ready");
+        refreshKnownList();
+      });
 
-            const token = ++lastQueryToken;      // identify this request
-            setStatus("Loading…");
-
-            const q = layer.createQuery();
-            q.geometry = view.extent;
-            q.spatialRelationship = "intersects";
-            q.returnGeometry = true;
-            q.outFields = ["*"];
-            q.num = 200;
-
-            try {
-                const res = await layer.queryFeatures(q);
-
-                // If a newer request started while we were waiting, ignore this result
-                if (token !== lastQueryToken) return;
-
-                renderKnownList(res.features || []);
-                setStatus("Ready");
-            } catch (e) {
-                // Ignore aborted/canceled requests (common during navigation)
-                if (e?.name === "AbortError" || /aborted/i.test(e?.message || "")) {
-                return;
-                }
-
-                console.warn("Known list query failed:", e);
-                renderKnownList([]);
-                setStatus("List unavailable");
-            }
-        }
-
-        // Debounce extent changes
-        let t = null;
-        view.watch("extent", () => {
-            if (t) clearTimeout(t);
-            t = setTimeout(refreshKnownList, 350);
-        });
-
-        view.when(() => {
-            console.log("✅ MapView ready");
-            refreshKnownList();
-        });
-
-        layer.when(() => console.log("✅ FeatureLayer ready")).catch((err) =>
-            console.error("❌ Layer failed:", err)
-        );
+      /*
+        When the layer is ready, log it. If it fails, log the error.
+      */
+      layer
+        .when(() => console.log("FeatureLayer ready"))
+        .catch((err) => console.error("Layer failed:", err));
     </script>
   </body>
-</html> 
+</html>
