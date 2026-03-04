@@ -1,81 +1,565 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1, maximum-scale=1, user-scalable=no"
+    />
 
-        <title>Midterm</title>
+    <title>ParkArt — Midterm</title>
 
-        <style>
-            html,
-            body,
-            #viewDiv {
-                padding: 0;
-                margin: 0;
-                height: 100%;
-                width: 100%;
-            }
+    <!-- Bootstrap 5 -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
 
-            .addRecordBtn {
-                position: absolute;
-                z-index: 10;
-                top: 10px;
-                right: 10px;
-                background-color: #0079c1;
-                color: white;
-                padding: 8px 16px;
-                border: none;
-                border-radius: 4px;
-                font-size: 14px;
-                cursor: pointer;
-                text-decoration: none;
-            }
+    <!-- ArcGIS JS API (YOUR VERSION/LINK) -->
+    <link
+      rel="stylesheet"
+      href="https://js.arcgis.com/4.33/esri/themes/light/main.css"
+    />
 
-            .addRecordBtn:hover {
-                background-color: #005a87;
-            }
-        </style>
+    <style>
+      :root {
+        --brand-border: #111;
+        --panel-bg: #fff;
+        --muted: #6b7280;
+      }
 
-        <link rel="stylesheet" href="https://js.arcgis.com/4.33/esri/themes/light/main.css" />
-        <script src="https://js.arcgis.com/4.33/"></script>
+      body {
+        background: #f3f4f6;
+      }
 
-        <script>
-        require(["esri/config", "esri/Map", "esri/views/MapView", "esri/widgets/Locate", "esri/layers/FeatureLayer" ], (esriconfig, Map, MapView, Locate, FeatureLayer) => {
-            esriconfig.apiKey =
-                "AAPTxy8BH1VEsoebNVZXo8HurBJmF1dHA4CHzUZ4f7XXY9MumVDFdZwWOV0pYRQMOAc7ZaqvOZxcqTmdHYg4uq0LAzk5EA8UDp0afz4N38c05_g1e4nZkAsxtdl9eWtAkFEOzYhK5sSy0SSdy9kSZ2kK797kJHpMrR-d0v7pjLT7kO2zAR9lbfIj2YY8PY1C_ARAz5SGHU8AQF_B146E-iEsWLrzafOtmDmUKhSkdT9BEWgLhqy6WzEsPYTj7B_66V6MAT1_eplYvQF3";
-            
-            const map = new Map({
-                basemap: "satellite"
-            });
+      .app-shell {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
 
-            const view = new MapView({
-                container: "viewDiv", // Reference to the DOM node that will contain the view
-                map: map // References the map object
-            });
+      .brand-bar {
+        background: #fff;
+        border-bottom: 2px solid var(--brand-border);
+      }
 
-            const locateBtn = new Locate({
-                view: view
-            });
+      .brand-title {
+        font-weight: 800;
+        letter-spacing: 0.3px;
+        margin: 0;
+        line-height: 1.1;
+      }
 
-            const layer = new FeatureLayer({
-                // URL to the feature service
-                url: "https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/survey123_ed4e8c66c6a342bcbed6dc9ea9fed8da_results/FeatureServer"
-            });
+      .brand-title {
+        font-weight: 900;
+        letter-spacing: 1px;
+        margin: 0;
+        line-height: 1.05;
+        font-size: clamp(2.5rem, 4vw, 4rem);
+      }
 
-            map.add(layer);
+      .art-pic {
+        width: 180px;
+        height: 120px;
+        border: 2px solid var(--brand-border);
+        border-radius: 6px;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #fff;
+      }
 
-            // Add the locate widget to the top left corner of the view
-            view.ui.add(locateBtn, {
-                position: "top-left"
-            });
+      .art-pic img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .main-area {
+        flex: 1;
+        display: flex;
+        gap: 14px;
+        padding: 14px;
+      }
+
+      .panel {
+        background: var(--panel-bg);
+        border: 2px solid var(--brand-border);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+
+      .panel-header {
+        padding: 10px 12px;
+        border-bottom: 2px solid var(--brand-border);
+        background: #fff;
+        font-weight: 800;
+      }
+
+      .panel-body {
+        padding: 12px;
+      }
+
+      /* Map container */
+      #viewDiv {
+        width: 100%;
+        height: 72vh;
+        min-height: 520px;
+      }
+
+      .map-panel {
+        flex: 1 1 auto;
+        min-width: 320px;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .side-panel {
+        width: 320px;
+        flex: 0 0 320px;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .known-list {
+        max-height: calc(72vh - 52px);
+        overflow: auto;
+      }
+
+      .known-item {
+        cursor: pointer;
+      }
+
+      .known-item:hover {
+        background: #f8fafc;
+      }
+
+      .hint {
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+
+      .pill {
+        display: inline-block;
+        font-size: 0.75rem;
+        padding: 0.15rem 0.45rem;
+        border-radius: 999px;
+        border: 1px solid #ddd;
+        background: #fff;
+        color: #111;
+      }
+
+      /* Bottom-anchored Add Sculpture button (desktop + mobile) */
+      .addSculptureBtn {
+        position: absolute;
+        z-index: 30;
+        left: 50%;
+        bottom: 12px;
+        transform: translateX(-50%);
+        background-color: #0079c1;
+        color: white;
+        padding: 10px 18px;
+        border: none;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+      }
+
+      .addSculptureBtn:hover {
+        background-color: #005a87;
+        color: white;
+      }
+
+      /* Give the map some breathing room so the button doesn't cover attribution/UI */
+      #viewDiv {
+        width: 100%;
+        height: 72vh;
+        min-height: 520px;
+        padding-bottom: 52px; /* space for button overlay */
+        box-sizing: border-box;
+      }
+
+      @media (max-width: 991.98px) {
+        #viewDiv {
+          height: 56vh;
+          min-height: 380px;
+          padding-bottom: 58px;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="app-shell">
+      <!-- Header -->
+      <header class="brand-bar py-2">
+        <div class="container-fluid">
+          <div class="d-flex align-items-center justify-content-between">
+
+            <!-- Left Image -->
+            <div class="art-pic d-none d-md-block">
+              <img src="img/BlueSculpture.jpg" alt="Blue Sculpture">
+            </div>|
+            <div class="art-pic d-none d-md-block">
+              <img src="img/WoodenMan_OnBench.jpg" alt="Wooden Man on a Bench">
+            </div>
+
+            <!-- Center Title Block -->
+            <div class="text-center flex-grow-1">
+              <h1 class="brand-title">ParkArt</h1>
+              <p class="brand-subtitle m-0">
+                Public Art Installations Tracker
+              </p>
+            </div>
+
+            <!-- Right Image -->
+            <div class="art-pic d-none d-md-block">
+              <img src="img/RoundGardenSculpture.jpg" alt="Round Garden Sculpture">
+            </div>|
+            <div class="art-pic d-none d-md-block">
+              <img src="img/gorilla.jpg" alt="Gorilla Sculpture">
+            </div>
+
+          </div>
+        </div>
+      </header>
+
+      <!-- Main -->
+      <main class="main-area">
+        <!-- LEFT: Info (desktop) -->
+        <section class="panel side-panel d-none d-lg-flex">
+          <div class="panel-header">Info</div>
+          <div class="panel-body">
+            <p class="mb-2">
+              This app helps you record and discover <strong>public structural art</strong>—
+              sculptures, statues, and installations—especially pieces tucked away in parks
+              or corners of buildings.
+            </p>
+            <ul class="mb-2">
+              <li>Use <span class="pill">Find my location</span> to zoom to you.</li>
+              <li>Use <span class="pill">Add Sculpture</span> to open the Survey123 form.</li>
+              <li>Points in the map show details when selected.</li>
+            </ul>
+            <p class="hint mb-0">
+              The list on the right shows known art locations inside the current map view.
+            </p>
+          </div>
+        </section>
+
+        <!-- CENTER: Map -->
+        <section class="panel map-panel">
+          <div class="panel-header d-flex align-items-center justify-content-between">
+            <span>Map</span>
+
+            <div class="btn-group d-lg-none" role="group" aria-label="Map panel controls">
+            <button
+              class="btn btn-sm btn-outline-dark"
+              data-bs-toggle="collapse"
+              data-bs-target="#mobileInfo"
+              aria-controls="mobileInfo"
+            >
+              Info
+            </button>
+
+            <button
+              class="btn btn-sm btn-outline-dark"
+              data-bs-toggle="offcanvas"
+              data-bs-target="#offcanvasKnown"
+              aria-controls="offcanvasKnown"
+            >
+              Known Locations
+            </button>
+          </div>
+          </div>
+
+          <!-- Mobile collapsible info -->
+          <div class="collapse d-lg-none" id="mobileInfo">
+            <div class="panel-body" style="border-bottom: 2px solid var(--brand-border)">
+              <p class="mb-2">
+                Record and discover <strong>public structural art</strong> near you.
+                Use <strong>Add Sculpture</strong> to submit via Survey123.
+              </p>
+              <p class="hint mb-0">
+                The known-locations list shows points currently in your map view.
+              </p>
+            </div>
+          </div>
+
+          <div style="position: relative">
+            <!-- Your exact Survey123 Add Record link (kept) -->
+            <a
+              href="https://survey123.arcgis.com/share/ed4e8c66c6a342bcbed6dc9ea9fed8da"
+              target="_blank"
+              class="addSculptureBtn"
+              >Add Sculpture
+            </a>
+
+            <div id="viewDiv"></div>
+          </div>
+
+          <div class="panel-body d-flex align-items-center justify-content-between gap-2">
+            <div class="hint">
+              Pan/zoom the map — the known locations list updates automatically.
+            </div>
+            <span class="pill" id="statusPill">Ready</span>
+          </div>
+        </section>
+
+        <!-- RIGHT: Known locations (desktop) -->
+        <section class="panel side-panel d-none d-lg-flex">
+          <div class="panel-header d-flex align-items-center justify-content-between">
+            <span>Known locations in map view:</span>
+            <span id="countBadge" class="pill">0</span>
+          </div>
+          <div class="panel-body p-0">
+            <div id="knownList" class="list-group list-group-flush known-list"></div>
+            <div id="knownEmpty" class="p-3 text-center text-muted d-none">
+              No known art locations in the current map view.
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- Mobile Offcanvas list -->
+    <div
+      class="offcanvas offcanvas-end"
+      tabindex="-1"
+      id="offcanvasKnown"
+      aria-labelledby="offcanvasKnownLabel"
+    >
+      <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="offcanvasKnownLabel">
+          Known locations in view
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="offcanvas"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="offcanvas-body p-0">
+        <div class="px-3 pb-2">
+          <span id="countBadgeMobile" class="pill">0</span>
+        </div>
+        <div id="knownListMobile" class="list-group list-group-flush"></div>
+        <div id="knownEmptyMobile" class="p-3 text-center text-muted d-none">
+          No known locations in the current map view.
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script type="module">
+        import esriConfig from "https://js.arcgis.com/4.33/@arcgis/core/config.js";
+        import Map from "https://js.arcgis.com/4.33/@arcgis/core/Map.js";
+        import MapView from "https://js.arcgis.com/4.33/@arcgis/core/views/MapView.js";
+        import Locate from "https://js.arcgis.com/4.33/@arcgis/core/widgets/Locate.js";
+        import Search from "https://js.arcgis.com/4.33/@arcgis/core/widgets/Search.js";
+        import Home from "https://js.arcgis.com/4.33/@arcgis/core/widgets/Home.js";
+        import FeatureLayer from "https://js.arcgis.com/4.33/@arcgis/core/layers/FeatureLayer.js";
+
+        // ✅ API key placeholder
+        esriConfig.apiKey = "AAPTxy8BH1VEsoebNVZXo8HurBJmF1dHA4CHzUZ4f7XXY9MumVDFdZwWOV0pYRQMOAc7ZaqvOZxcqTmdHYg4uq0LAzk5EA8UDp0afz4N38c05_g1e4nZkAsxtdl9eWtAkFEOzYhK5sSy0SSdy9kSZ2kK797kJHpMrR-d0v7pjLT7kO2zAR9lbfIj2YY8PY1C_ARAz5SGHU8AQF_B146E-iEsWLrzafOtmDmUKhSkdT9BEWgLhqy6WzEsPYTj7B_66V6MAT1_eplYvQF3";
+
+        // ✅ Create map
+        const map = new Map({
+            basemap: "satellite",
         });
-        </script>
 
-    </head>
-    <body>
-        <!-- hello world text to check if everything worked -->
-        <h1>Hello World! I am ready to collect data.</h1>
-        <a href="https://survey123.arcgis.com/share/ed4e8c66c6a342bcbed6dc9ea9fed8da"target="_blank" class="addRecordBtn">Add Record</a>
-        <div id="viewDiv"></div>
-    </body>
-</html>
+        // ✅ Create view
+        const view = new MapView({
+            container: "viewDiv",
+            map,
+            center: [-98.5795, 39.8283],
+            zoom: 4,
+        });
+
+        // expose for debugging in DevTools
+        window.view = view;
+
+        const homeBtn = new Home({
+            view: view
+        });
+        view.ui.add(homeBtn, "top-left");
+
+        // ✅ Widgets
+        const locateBtn = new Locate({ view });
+        view.ui.add(locateBtn, { position: "top-left" });
+
+        const search = new Search({ view });
+        view.ui.add(search, "top-right");
+
+        // ✅ FeatureLayer (use /0)
+        const layer = new FeatureLayer({
+            url: "https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/survey123_ed4e8c66c6a342bcbed6dc9ea9fed8da_results/FeatureServer/0",
+            outFields: ["*"],
+            popupEnabled: true,
+        });
+
+        window.artLayer = layer;
+
+        layer.popupEnabled = true;
+
+        layer.popupTemplate = {
+          title: "{What_is_the_name_of_the_piece_o}",
+          content: "" // title alone is fine, but content is required by some configs
+        };
+
+        map.add(layer);
+
+        // --- Known locations list (in current map view) ---
+        const knownList = document.getElementById("knownList");
+        const knownEmpty = document.getElementById("knownEmpty");
+        const countBadge = document.getElementById("countBadge");
+
+        const knownListMobile = document.getElementById("knownListMobile");
+        const knownEmptyMobile = document.getElementById("knownEmptyMobile");
+        const countBadgeMobile = document.getElementById("countBadgeMobile");
+
+        const statusPill = document.getElementById("statusPill");
+
+        const escapeHtml = (s) =>
+            String(s ?? "")
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+
+        function setStatus(text) {
+            statusPill.textContent = text;
+        }
+
+        function pickTitle(attrs) {
+            const SCULPTURE_NAME_FIELD = "what_is_the_name_of_the_piece_o";
+
+            const value = attrs?.[SCULPTURE_NAME_FIELD];
+
+            return (value && String(value).trim())
+                ? String(value).trim()
+                : "Unnamed sculpture";
+            }
+
+        function renderKnownList(features) {
+            const total = features.length;
+            countBadge.textContent = total;
+            countBadgeMobile.textContent = total;
+
+            knownList.innerHTML = "";
+            knownListMobile.innerHTML = "";
+
+            if (total === 0) {
+            knownEmpty.classList.remove("d-none");
+            knownEmptyMobile.classList.remove("d-none");
+            return;
+            }
+            knownEmpty.classList.add("d-none");
+            knownEmptyMobile.classList.add("d-none");
+
+            features.forEach((f) => {
+            const attrs = f.attributes || {};
+            const title = escapeHtml(pickTitle(attrs));
+            const oid = attrs.OBJECTID ?? "";
+            const subtitle = oid ? `OBJECTID: ${escapeHtml(oid)}` : "";
+
+            const html = `
+                <button type="button" class="list-group-item list-group-item-action known-item">
+                <div class="fw-semibold">${title}</div>
+                <div class="small text-muted">${subtitle}</div>
+                </button>
+            `;
+
+            // Desktop
+            const w = document.createElement("div");
+            w.innerHTML = html.trim();
+            const btn = w.firstElementChild;
+            btn.addEventListener("click", async () => {
+                await view.goTo({ target: f.geometry, zoom: 18 });
+                view.openPopup({
+                    features: [f],
+                    location: f.geometry
+                });
+            });
+            knownList.appendChild(btn);
+
+            // Mobile
+            const wM = document.createElement("div");
+            wM.innerHTML = html.trim();
+            const btnM = wM.firstElementChild;
+            btnM.addEventListener("click", async () => {
+                const off = bootstrap.Offcanvas.getInstance(
+                document.getElementById("offcanvasKnown")
+                );
+                if (off) off.hide();
+
+                await view.goTo({ target: f.geometry, zoom: 18 });
+                view.openPopup({
+                    features: [f],
+                    location: f.geometry
+                });
+            });
+            knownListMobile.appendChild(btnM);
+            });
+        }
+
+        let lastQueryToken = 0;
+
+        async function refreshKnownList() {
+            if (!view.extent) return;
+
+            const token = ++lastQueryToken;      // identify this request
+            setStatus("Loading…");
+
+            const q = layer.createQuery();
+            q.geometry = view.extent;
+            q.spatialRelationship = "intersects";
+            q.returnGeometry = true;
+            q.outFields = ["*"];
+            q.num = 200;
+
+            try {
+                const res = await layer.queryFeatures(q);
+
+                // If a newer request started while we were waiting, ignore this result
+                if (token !== lastQueryToken) return;
+
+                renderKnownList(res.features || []);
+                setStatus("Ready");
+            } catch (e) {
+                // Ignore aborted/canceled requests (common during navigation)
+                if (e?.name === "AbortError" || /aborted/i.test(e?.message || "")) {
+                return;
+                }
+
+                console.warn("Known list query failed:", e);
+                renderKnownList([]);
+                setStatus("List unavailable");
+            }
+        }
+
+        // Debounce extent changes
+        let t = null;
+        view.watch("extent", () => {
+            if (t) clearTimeout(t);
+            t = setTimeout(refreshKnownList, 350);
+        });
+
+        view.when(() => {
+            console.log("✅ MapView ready");
+            refreshKnownList();
+        });
+
+        layer.when(() => console.log("✅ FeatureLayer ready")).catch((err) =>
+            console.error("❌ Layer failed:", err)
+        );
+    </script>
+  </body>
+</html> 
