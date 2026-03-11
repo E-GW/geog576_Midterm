@@ -503,7 +503,7 @@
         The map is a model; it does not render until a view is created.
       */
       const map = new Map({
-        basemap: "streets-vector", // **Updated basemap -> community map style for design
+        basemap: "streets", // **Updated basemap -> community map style for design
       });
 
       /*
@@ -522,6 +522,7 @@
         ** Updated so default map view limits scope to most likely to be relevant (could be 1000s of pts made over time, would get crowded)
       */ 
       
+      /* maybe this was breaking the map?
       // store coordinates as a new point feature
       view.when(function() {
         if (navigator.geolocation) {
@@ -552,7 +553,7 @@
           console.log("Geolocation is not supported by this browser.");
           }
         });
-
+      */
 
       /*
         Expose the view for debugging from the browser console.
@@ -563,8 +564,8 @@
       /*
         Home widget returns the view to its initial center/zoom and rotation.
       */
-      //const homeBtn = new Home({ view });
-      //view.ui.add(homeBtn, "top-left");
+      const homeBtn = new Home({ view });
+      view.ui.add(homeBtn, "top-left");
 
       /*
         Locate widget zooms to the user's device location.
