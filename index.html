@@ -26,12 +26,12 @@
       rel="stylesheet"
       href="https://js.arcgis.com/4.33/esri/themes/light/main.css"
     />
+      
+     <style>
+      /* Updated Colors throughout  - idk why i chose mauve + beige but the goal was to lighten things with the basemap and add color for thematic design
 
+/* CSS custom properties used across the layout for consistent color and borders.*/
 
-    <style>
-      /*
-        CSS custom properties used across the layout for consistent color and borders.
-      */
       :root {
         --brand-border: #111;
         --panel-bg: #fff;
@@ -40,7 +40,7 @@
 
       /* Light gray background behind the app panels */
       body {
-        background: #f4f6f3;
+        background: #f7e5c4d8;
       }
 
       /*
@@ -56,7 +56,7 @@
         Top header bar styling with a strong border line.
       */
       .brand-bar {
-        background: #fff;
+        background: #785e55;
         border-bottom: 2px solid var(--brand-border);
       }
 
@@ -69,6 +69,7 @@
         letter-spacing: 0.3px;
         margin: 0;
         line-height: 1.1;
+        background-color: #785e55;
       }
 
       /*
@@ -141,13 +142,14 @@
         border: 2px solid var(--brand-border);
         border-radius: 10px;
         overflow: hidden;
+        background-color: #faf3e6
       }
 
       /* Panel header strip */
       .panel-header {
         padding: 10px 12px;
         border-bottom: 2px solid var(--brand-border);
-        background: #fff;
+        background: #99776c; 
         font-weight: 800;
       }
 
@@ -195,6 +197,7 @@
       /* List item cursor indicates clickability */
       .known-item {
         cursor: pointer;
+        background-color: #faf3e6
       }
 
       /* Hover style for list items */
@@ -229,8 +232,8 @@
         left: 50%;
         bottom: 12px;
         transform: translateX(-50%);
-        background-color: #0079c1;
-        color: white;
+        background-color: #5f443b;
+        color: whitesmoke;
         padding: 10px 18px;
         border: none;
         border-radius: 10px;
@@ -242,7 +245,7 @@
       }
 
       .addSculptureBtn:hover {
-        background-color: #005a87;
+        background-color: #785e55;
         color: white;
       }
 
@@ -270,7 +273,7 @@
           padding-bottom: 58px;
         }
       }
-    </style>
+     </style>
   </head>
 
   <body>
@@ -334,7 +337,7 @@
             <ul class="mb-2">
               <li>Use the circular <span class="pill">Find my location</span> button to zoom to you.</li>
               <li>
-                Use <span class="pill">Add Sculpture</span> to submit a piece of art vie a Survey123
+                Use <span class="pill">Add Sculpture</span> to submit a piece of art via a Survey123 <!-- updated small typo: via vs vie-->
                 form.
               </li>
               <li>Points in the map show details when selected.</li>
@@ -486,6 +489,7 @@
       import Search from "https://js.arcgis.com/4.33/@arcgis/core/widgets/Search.js";
       import Home from "https://js.arcgis.com/4.33/@arcgis/core/widgets/Home.js";
       import FeatureLayer from "https://js.arcgis.com/4.33/@arcgis/core/layers/FeatureLayer.js";
+      import Point from "https://js.arcgis.com/4.33/@arcgis/core/geometry/Point.js"
 
       /*
         ArcGIS API key used for basemaps, geocoding, and other services.
@@ -499,7 +503,7 @@
         The map is a model; it does not render until a view is created.
       */
       const map = new Map({
-        basemap: "satellite",
+        basemap: "streets", // **Updated basemap -> community map style for design
       });
 
       /*
@@ -509,9 +513,47 @@
       const view = new MapView({
         container: "viewDiv",
         map,
-        center: [-98.5795, 39.8283],
-        zoom: 4,
+        center: [-89.0, 42.0], // ** Updated center and zoom -> initial local focus on WI/IL boarder if no user location
+        zoom: 6,
       });
+
+      /*
+        Set Map View to go to user's current location once the view loads:
+        ** Updated so default map view limits scope to most likely to be relevant (could be 1000s of pts made over time, would get crowded)
+      */ 
+      
+      /* maybe this was breaking the map?
+      // store coordinates as a new point feature
+      view.when(function() {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(function(position) {
+          var lat = position.coords.latitude;
+          var lon = position.coords.longitude;
+
+          var currentLocation = new Point({
+          latitude: lat,
+          longitude: lon
+          });
+        // go to that feature 
+        view.goTo({
+          target: currentLocation,
+          zoom: 9, 
+          }).catch(function(error) {
+          // Error Handling: 
+          if (error.name != "AbortError") {
+            console.error(error);
+          }
+          });
+          }, function(error) {
+          // geolocation error (if user denies permission)
+          console.error("Geolocation error:", error);
+          });
+          } else {
+          // if browser doesn't support Geolocation
+          console.log("Geolocation is not supported by this browser.");
+          }
+        });
+      */
 
       /*
         Expose the view for debugging from the browser console.
@@ -537,6 +579,24 @@
       */
       const search = new Search({ view });
       view.ui.add(search, "top-right");
+      
+      /*
+        Point Renderer to style points added from Survey123 results feature layer
+        ** Updated for map design - make map interface lighter, more aligned with art theme
+      */
+      const pointRender = {
+        type: "simple",  // autocasts as new SimpleRenderer()
+        symbol: {
+          type: "simple-marker",  // autocasts as new SimpleMarkerSymbol()
+          size: 6,
+          color: "#352621", 
+          opacity: 0.6,
+          outline: {  // autocasts as new SimpleLineSymbol()
+            width: 1,
+            color: "#5f443b"
+          }
+        }
+      };
 
       /*
         FeatureLayer points to the Survey123 results layer.
@@ -547,6 +607,7 @@
           "https://services.arcgis.com/HRPe58bUyBqyyiCt/arcgis/rest/services/survey123_ed4e8c66c6a342bcbed6dc9ea9fed8da_results/FeatureServer/0",
         outFields: ["*"],
         popupEnabled: true,
+        renderer: pointRender
       });
 
       /*
@@ -775,3 +836,11 @@
     </script>
   </body>
 </html>
+
+<!-- 
+Updates for Code Review:
+- separated stylesheet into separate css file reference for readability
+- updated basemap to community map from satellite for design 
+- added feature to default view by current location (removed home button feature as result)
+- added a renderer for the survey result point features (vs default red and yellow)
+-->
